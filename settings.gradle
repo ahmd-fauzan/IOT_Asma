@@ -1,0 +1,3 @@
+include ':antares-http-api-0.8b'
+include ':app'
+rootProject.name = "IOT"

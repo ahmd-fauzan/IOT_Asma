@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('antares-http-api-0.8b.jar'))
