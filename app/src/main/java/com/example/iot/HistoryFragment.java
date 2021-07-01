@@ -20,12 +20,15 @@ public class HistoryFragment extends Fragment {
 
     RecyclerView list;
 
+    List<History> historyList;
+
     Adapter adapter;
     Context context;
 
-    public HistoryFragment(Context context) {
+    public HistoryFragment(Context context, List<History> historyList) {
         // Required empty public constructor
         this.context = context;
+        this.historyList = historyList;
     }
 
     @Override
@@ -39,7 +42,7 @@ public class HistoryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
         list = view.findViewById(R.id.list);
 
-        adapter = new Adapter(context, CreateData());
+        adapter = new Adapter(context, historyList);
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false);
         list.setAdapter(adapter);
@@ -47,19 +50,5 @@ public class HistoryFragment extends Fragment {
 
         // Inflate the layout for this fragment
         return view;
-    }
-
-    private List<History> CreateData(){
-        List<History> listData = new ArrayList<>();
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        return listData;
     }
 }

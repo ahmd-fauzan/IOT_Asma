@@ -9,6 +9,8 @@ public class History {
     public History(String date, int detak, int kbb, float debu){
         this.date = date; this.detak = detak; this.kbb = kbb; this.debu = debu;
     }
+
+    public History(){}
     public String getDate() {
         return date;
     }
