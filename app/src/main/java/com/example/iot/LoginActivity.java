@@ -34,7 +34,7 @@ public class LoginActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
 
-        callFragment(new LoginFragment());
+        callFragment(new LoginFragment(auth));
         tag = "Login";
 
         Button button = findViewById(R.id.btnSwitch);
@@ -46,11 +46,12 @@ public class LoginActivity extends AppCompatActivity {
                 button.setText(tag);
 
                 if(tag == "Login"){
-                    callFragment(new RegisterFragment());
+                    callFragment(new RegisterFragment(auth));
+
                     tag = "SignUp";
                 }
                 else{
-                    callFragment(new LoginFragment());
+                    callFragment(new LoginFragment(auth));
                     tag = "Login";
                 }
             }

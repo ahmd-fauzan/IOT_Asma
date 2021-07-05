@@ -1,12 +1,14 @@
 package com.example.iot;
 
-public class User {
+public class User{
     private String username;
     private String dateOfBirth;
+    private String deviceName;
 
-    public User(String username, String dateOfBirth){
+    public User(String username, String dateOfBirth, String deviceName){
         this.username = username;
         this.dateOfBirth = dateOfBirth;
+        this.deviceName = deviceName;
     }
 
     public User(){}
@@ -24,5 +26,13 @@ public class User {
 
     public void setDateOfBirth(String dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
+    }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public void setDeviceName(String deviceName) {
+        this.deviceName = deviceName;
     }
 }

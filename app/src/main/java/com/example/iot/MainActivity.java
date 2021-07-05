@@ -21,6 +21,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
@@ -35,21 +37,28 @@ import com.google.firebase.database.ValueEventListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import eu.long1.spacetablayout.SpaceTabLayout;
 import id.co.telkom.iot.AntaresHTTPAPI;
 import id.co.telkom.iot.AntaresResponse;
 
-public class MainActivity extends AppCompatActivity/* implements AntaresHTTPAPI.OnResponseListener*/ {
+public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.OnResponseListener {
 
 
     private String TAG = "ANTARES-API";
     AntaresHTTPAPI antaresHTTPAPI;
     private String dataDevice;
+    DatabaseReference myRef;
 
-    List<History> histories = new ArrayList<>();
+    public static int currIndex = 0;
+    private static String ACCESS_KEY = "334a5259011c3dfd:565865ee6bbac5d4";
+    HistoryFactory historyFactory;
 
     User user = null;
     @Override
@@ -57,7 +66,9 @@ public class MainActivity extends AppCompatActivity/* implements AntaresHTTPAPI.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        FirebaseAuth auth = DataModel.getAuth();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+
+        historyFactory = HistoryFactory.getInstance();
 
         if(auth.getCurrentUser() == null){
             Intent intent = new Intent(this, LoginActivity.class);
@@ -66,6 +77,7 @@ public class MainActivity extends AppCompatActivity/* implements AntaresHTTPAPI.
         }
 
         ExtendedFloatingActionButton btnLogout = findViewById(R.id.btnLogout);
+        ExtendedFloatingActionButton btnRefresh = findViewById(R.id.btnRefresh);
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -78,42 +90,27 @@ public class MainActivity extends AppCompatActivity/* implements AntaresHTTPAPI.
         });
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
-
+        myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
 
         List<Fragment> fragmentList = new ArrayList<>();
 
 
 
-        myRef.child("History").addValueEventListener(new ValueEventListener() {
+
+
+        myRef.child("User").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(int i = 0; i < snapshot.getChildrenCount(); i++){
-                    History history = snapshot.child(String.valueOf(i)).getValue(History.class);
-                    histories.add(history);
-                }
+                user = snapshot.getValue(User.class);
 
-                myRef.child("User").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        user = snapshot.getValue(User.class);
+                fragmentList.add(new HomeFragment(user.getUsername()));
+                fragmentList.add(new HistoryFragment(getApplicationContext()));
+                fragmentList.add(new CallFragment(getApplicationContext()));
+                fragmentList.add(new ProfileFragment(user, auth.getCurrentUser().getUid()));
 
-                        fragmentList.add(new HomeFragment(user.getUsername()));
-                        fragmentList.add(new HistoryFragment(getApplicationContext(), histories));
-                        fragmentList.add(new CallFragment(getApplicationContext()));
-
-                        ViewPager viewPager = findViewById(R.id.viewPager);
-                        SpaceTabLayout tabLayout = findViewById(R.id.spaceTabLayout);
-                        tabLayout.initialize(viewPager, getSupportFragmentManager(), fragmentList, null);
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
-
-
+                ViewPager viewPager = findViewById(R.id.viewPager);
+                SpaceTabLayout tabLayout = findViewById(R.id.spaceTabLayout);
+                tabLayout.initialize(viewPager, getSupportFragmentManager(), fragmentList, null);
             }
 
             @Override
@@ -121,40 +118,22 @@ public class MainActivity extends AppCompatActivity/* implements AntaresHTTPAPI.
 
             }
         });
-        /*
 
-        //antaresHTTPAPI = new AntaresHTTPAPI();
-        //antaresHTTPAPI.addListener(this);
+
+
+
+        antaresHTTPAPI = new AntaresHTTPAPI();
+        antaresHTTPAPI.addListener(this);
 
         btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                antaresHTTPAPI.getLatestDataofDevice("9e73d1645d6a3669:81bdb72d9318e03f", "SistemMonitoringPenderitaAsma", "SistemMonitoringPenderitaAsma");
-                History history = new History(tanggal, detak jantung, kelembaban, debu);
-                historyList.add(history);
-                
-
+                antaresHTTPAPI.getLatestDataofDevice("9e73d1645d6a3669:81bdb72d9318e03f", "SistemMonitoringPenderitaAsma", user.getDeviceName());
             }
-        });*/
-
-
+        });
     }
 
-    private List<History> CreateData(){
-        List<History> listData = new ArrayList<>();
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        listData.add(new History("22/12/34", 66, 23,0.7f));
-        return listData;
-    }
 
-    /*
     @Override
     public void onResponse(AntaresResponse antaresResponse) {
         Log.d(TAG, Integer.toString(antaresResponse.getRequestCode()));
@@ -166,12 +145,13 @@ public class MainActivity extends AppCompatActivity/* implements AntaresHTTPAPI.
                     @Override
                     public void run() {
                         try {
-                            JSONObject temp = new JSONObject(dataDevice);
-                            txtData.setText("Temperature Ruangan: " + temp.getInt("temperature") + "     Kelembaban Ruangan" + temp.getInt("humidity"));
-                        } catch (JSONException e) {
+                            //JSONObject temp = new JSONObject(dataDevice);
+                            History history = new History(dateToString(), 90, 30, 50);
+                            insertHistory(history);
+
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
-
                     }
                 });
                 Log.d(TAG, dataDevice);
@@ -179,5 +159,27 @@ public class MainActivity extends AppCompatActivity/* implements AntaresHTTPAPI.
                 e.printStackTrace();
             }
         }
-    }*/
+    }
+
+    private void insertHistory(History history){
+        myRef.child("History").child(String.valueOf(currIndex)).setValue(history).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    Log.d("STATE", "Data berhasil disimpan");
+                }
+                else {
+                    Log.d("STATE", "Data gagal disimpan");
+                }
+            }
+        });
+
+    }
+
+    private String dateToString(){
+        Date date = Calendar.getInstance().getTime();
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        String strDate = dateFormat.format(date);
+        return strDate;
+    }
 }

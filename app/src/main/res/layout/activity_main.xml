@@ -16,6 +16,15 @@
         android:layout_margin="5dp"
         android:id="@+id/btnLogout"/>
 
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Refresh"
+        android:textAlignment="center"
+        android:gravity="center_horizontal"
+        android:layout_gravity="left"
+        android:layout_margin="5dp"
+        android:id="@+id/btnRefresh"/>
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/viewPager"
@@ -28,7 +37,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_behavior="eu.long1.spacetablayout.SpaceTabLayoutBehavior"
-        app:number_of_tabs="three_IconOnly"
+        app:number_of_tabs="four"
         app:tab_color="#e8e8e8"
         app:button_color="#ffffff"
         app:starting_position="one"

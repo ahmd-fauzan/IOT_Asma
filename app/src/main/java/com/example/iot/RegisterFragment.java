@@ -11,11 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.TextView;
+import android.widget.EditText;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -25,28 +26,31 @@ import java.util.Calendar;
 
 public class RegisterFragment extends Fragment {
 
-    private TextView etUsername;
-    private TextView etDate;
-    private TextView etEmail;
-    private TextView etPassword;
-    private TextView etConfirPassword;
+    FirebaseAuth auth;
 
+    private EditText etUsername;
+    private EditText etDate;
+    private EditText etEmail;
+    private EditText etDeviceName;
+    private EditText etPassword;
+    private EditText etConfirPassword;
+
+    public RegisterFragment(FirebaseAuth auth){
+        this.auth = auth;
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-
-
 
         View view = inflater.inflate(R.layout.fragment_register, container, false);;
 
         etUsername = view.findViewById(R.id.etUsername);
         etDate = view.findViewById(R.id.etDate);
         etEmail = view.findViewById(R.id.etEmail);
+        etDeviceName = view.findViewById(R.id.etDeviceName);
         etPassword = view.findViewById(R.id.etPassword);
         etConfirPassword = view.findViewById(R.id.etConfirPassword);
-
-        Button btn = view.findViewById(R.id.btnRegister);
 
         etDate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,6 +58,8 @@ public class RegisterFragment extends Fragment {
                 showDate();
             }
         });
+
+        Button btn = view.findViewById(R.id.btnRegister);
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,7 +71,7 @@ public class RegisterFragment extends Fragment {
     }
 
     private User createUser(){
-        return new User(etUsername.getText().toString(), etDate.getText().toString());
+        return new User(etUsername.getText().toString(), etDate.getText().toString(), etDeviceName.getText().toString());
     }
 
     public void showDate(){
@@ -95,13 +101,13 @@ public class RegisterFragment extends Fragment {
     }
 
     public void registerAccount(String email, String password){
-        DataModel.getAuth().createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if(task.isSuccessful()){
 
                     FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference myRef = database.getReference("Account").child(DataModel.getAuth().getCurrentUser().getUid());
+                    DatabaseReference myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
 
                     myRef.child("User").setValue(createUser());
 

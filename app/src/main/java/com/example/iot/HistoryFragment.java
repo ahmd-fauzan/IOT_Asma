@@ -3,6 +3,7 @@ package com.example.iot;
 import android.content.Context;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -13,6 +14,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,15 +28,12 @@ public class HistoryFragment extends Fragment {
 
     RecyclerView list;
 
-    List<History> historyList;
-
     Adapter adapter;
     Context context;
 
-    public HistoryFragment(Context context, List<History> historyList) {
+    public HistoryFragment(Context context) {
         // Required empty public constructor
         this.context = context;
-        this.historyList = historyList;
     }
 
     @Override
@@ -42,11 +47,36 @@ public class HistoryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
         list = view.findViewById(R.id.list);
 
-        adapter = new Adapter(context, historyList);
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef;
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false);
-        list.setAdapter(adapter);
-        list.setLayoutManager(gridLayoutManager);
+        myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
+
+        HistoryFactory historyFactory = HistoryFactory.getInstance();
+
+        myRef.child("History").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<History> listHistory = new ArrayList<>();
+                for(int i = 0; i < snapshot.getChildrenCount(); i++){
+
+                    listHistory.add(snapshot.child(String.valueOf(i)).getValue(History.class));
+                }
+                adapter = new Adapter(context, listHistory);
+
+                GridLayoutManager gridLayoutManager = new GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false);
+                list.setAdapter(adapter);
+                list.setLayoutManager(gridLayoutManager);
+
+                MainActivity.currIndex = listHistory.size();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
 
         // Inflate the layout for this fragment
         return view;

@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.example.iot"
-        minSdkVersion 16
+        minSdkVersion 26
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -42,4 +42,5 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     implementation 'eu.long1:spacetablayout:1.0.4'
+    implementation 'com.journeyapps:zxing-android-embedded:4.2.0'
 }
