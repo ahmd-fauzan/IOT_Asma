@@ -44,6 +44,7 @@ public class LoginFragment extends Fragment {
         return view;
     }
 
+    //Login account dengan email dan password
     public void loginAccount(String email, String password){
         auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override

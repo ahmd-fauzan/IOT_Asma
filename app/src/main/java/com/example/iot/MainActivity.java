@@ -1,39 +1,27 @@
 package com.example.iot;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager.widget.ViewPager;
 
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.os.Handler;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,34 +38,36 @@ import id.co.telkom.iot.AntaresResponse;
 
 public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.OnResponseListener {
 
-
+    //ANTARES
     private String TAG = "ANTARES-API";
-    AntaresHTTPAPI antaresHTTPAPI;
-    private String dataDevice;
+    AntaresHTTPAPI antares;
+    private static String ACCESS_KEY = "9e73d1645d6a3669:81bdb72d9318e03f";
+    private static String PROJECT_NAME = "SistemMonitoringPenderitaAsma";
+    private int currIndex = 0;
+
+    //FIREBASE
     DatabaseReference myRef;
 
-    public static int currIndex = 0;
-    private static String ACCESS_KEY = "334a5259011c3dfd:565865ee6bbac5d4";
-    HistoryFactory historyFactory;
-
+    //User
     User user = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Initialize firebase authentication
         FirebaseAuth auth = FirebaseAuth.getInstance();
 
-        historyFactory = HistoryFactory.getInstance();
-
+        //Jika tidak terdapat user yang login, maka pindah ke activityLogin
         if(auth.getCurrentUser() == null){
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             return;
         }
 
+        //Button untuk logout
         ExtendedFloatingActionButton btnLogout = findViewById(R.id.btnLogout);
-        ExtendedFloatingActionButton btnRefresh = findViewById(R.id.btnRefresh);
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -89,28 +79,27 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
             }
         });
 
+        //Read data user from firebase every data change and in first run
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
 
-        List<Fragment> fragmentList = new ArrayList<>();
-
-
-
-
-
-        myRef.child("User").addValueEventListener(new ValueEventListener() {
+        myRef.child("User").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 user = snapshot.getValue(User.class);
 
+                List<Fragment> fragmentList = new ArrayList<>();
+
                 fragmentList.add(new HomeFragment(user.getUsername()));
                 fragmentList.add(new HistoryFragment(getApplicationContext()));
                 fragmentList.add(new CallFragment(getApplicationContext()));
-                fragmentList.add(new ProfileFragment(user, auth.getCurrentUser().getUid()));
+                fragmentList.add(new ProfileFragment());
 
                 ViewPager viewPager = findViewById(R.id.viewPager);
                 SpaceTabLayout tabLayout = findViewById(R.id.spaceTabLayout);
                 tabLayout.initialize(viewPager, getSupportFragmentManager(), fragmentList, null);
+
+                content();
             }
 
             @Override
@@ -119,67 +108,129 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
             }
         });
 
+        //Initilize antares
+        antares = new AntaresHTTPAPI();
+        antares.addListener(this);
 
 
-
-        antaresHTTPAPI = new AntaresHTTPAPI();
-        antaresHTTPAPI.addListener(this);
-
-        btnRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                antaresHTTPAPI.getLatestDataofDevice("9e73d1645d6a3669:81bdb72d9318e03f", "SistemMonitoringPenderitaAsma", user.getDeviceName());
-            }
-        });
     }
 
+    //Read data terbaru dari antares
+    private void readData(){
+        antares.getLatestDataofDevice(0, ACCESS_KEY, PROJECT_NAME, user.getDeviceName());
+    }
 
+    //** Respon saat menggunakan method antares **//
     @Override
     public void onResponse(AntaresResponse antaresResponse) {
-        Log.d(TAG, Integer.toString(antaresResponse.getRequestCode()));
+
+        //** Jika REQUEST_CODE 0 maka mengambil data terbaru dari antares
         if(antaresResponse.getRequestCode() == 0){
             try {
-                JSONObject body = new JSONObject(antaresResponse.getBody());
-                dataDevice = body.getJSONObject("m2m:cin").getString("con");
+                String body = new JSONObject(antaresResponse.getBody()).getJSONObject("m2m:cin").getString("con");
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            //JSONObject temp = new JSONObject(dataDevice);
-                            History history = new History(dateToString(), 90, 30, 50);
-                            insertHistory(history);
+                            JSONObject temp = new JSONObject(body);
+                            History history = new History();
+                            history.setDate(dateToString());
+                            history.setDebu(temp.getInt("dustDensity"));
+                            history.setKbb(temp.getInt("humidity"));
+                            history.setDetak(temp.getInt("heartRate"));
 
+                            //Insert data terbaru dari antares pada firebase
+                            insertHistory(history);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
                 });
-                Log.d(TAG, dataDevice);
             }catch (JSONException e){
                 e.printStackTrace();
             }
         }
-    }
 
-    private void insertHistory(History history){
-        myRef.child("History").child(String.valueOf(currIndex)).setValue(history).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
-                    Log.d("STATE", "Data berhasil disimpan");
+        //** Jika REQUEST_CODE 1 maka cek jumlah panjang data antares. Jika total data di antares berubah (ada data baru) maka read data terbaru
+        if(antaresResponse.getRequestCode() == 1){
+            JSONObject body = null;
+            try {
+                body = new JSONObject(antaresResponse.getBody());
+                JSONArray array = body.getJSONArray("m2m:uril");
+
+                Log.d(TAG, array.length() + "");
+
+                if(currIndex == 0  && array.length() != 0){
+                    currIndex = array.length();
                 }
                 else {
-                    Log.d("STATE", "Data gagal disimpan");
+                    if(currIndex != array.length()){
+                        readData();
+                    }
                 }
-            }
-        });
 
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+        }
     }
 
+    //Insert data Sensor ke firebase
+    private void insertHistory(History history){
+        myRef.child("History").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long index = snapshot.getChildrenCount();
+
+                myRef.child("History").child(String.valueOf(index)).setValue(history).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            Log.d("STATE", "Data berhasil disimpan");
+                        }
+                        else {
+                            Log.d("STATE", "Data gagal disimpan");
+                        }
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
+    }
+
+    //Mengubah tipe data Date to String
     private String dateToString(){
         Date date = Calendar.getInstance().getTime();
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         String strDate = dateFormat.format(date);
         return strDate;
+    }
+
+    //Setiap 1 minute cek data antares apakah berubah atau tidak
+    public void content(){
+        antares.getDataIDofDevice(1, ACCESS_KEY, PROJECT_NAME, user.getDeviceName());
+
+        refresh(1000);
+    }
+
+    //Setiap satu menit refresh, cek jumlah data antares
+    public void refresh(int milisecond){
+        final Handler handler = new Handler();
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                content();
+            }
+        };
+
+        handler.postDelayed(runnable, milisecond * 60);
     }
 }

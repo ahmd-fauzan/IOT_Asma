@@ -32,8 +32,8 @@ public class CallAdapter extends RecyclerView.Adapter<CallAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.txtNoHP.setText(kontaks.get(position).getHp());
-        holder.txtNamaRS.setText(kontaks.get(position).getRs());
+        holder.txtNoHP.setText(kontaks.get(position).getTelp());
+        holder.txtNamaRS.setText(kontaks.get(position).getName());
         holder.rsImage.setImageResource(R.drawable.rs);
         holder.callImage.setImageResource(R.drawable.call);
     }

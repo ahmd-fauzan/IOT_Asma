@@ -1,17 +1,25 @@
 package com.example.iot;
 
+import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import android.print.PageRange;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -22,7 +30,9 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import org.w3c.dom.Text;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class RegisterFragment extends Fragment {
 
@@ -34,6 +44,11 @@ public class RegisterFragment extends Fragment {
     private EditText etDeviceName;
     private EditText etPassword;
     private EditText etConfirPassword;
+    private EditText etNameCall;
+    private EditText etTelpCall;
+    private ImageView btnAdd;
+
+    private LinearLayout parent;
 
     public RegisterFragment(FirebaseAuth auth){
         this.auth = auth;
@@ -52,6 +67,61 @@ public class RegisterFragment extends Fragment {
         etPassword = view.findViewById(R.id.etPassword);
         etConfirPassword = view.findViewById(R.id.etConfirPassword);
 
+        parent = view.findViewById(R.id.form_call);
+
+        btnAdd = view.findViewById(R.id.ivAdd);
+
+        ImageView btnDelete = view.findViewById(R.id.ivDelete);
+
+        //Menghapus field form emergency cell
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                int pos = parent.getChildCount();
+                parent.removeViewAt(pos - 1);
+                parent.removeViewAt(pos - 2);
+            }
+        });
+
+        //Menambahkan field form call emergency
+        btnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinearLayout linear = new LinearLayout(getContext());
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                linear.setLayoutParams(params);
+                linear.setOrientation(LinearLayout.HORIZONTAL);
+
+                TextView txtName = new TextView(getContext());
+                txtName.setText("Nama :");
+                txtName.setTextAppearance(R.style.TextAppearance_AppCompat_Subhead);
+
+                etNameCall = new EditText(getContext());
+                etNameCall.setLayoutParams(params);
+
+                linear.addView(txtName);
+                linear.addView(etNameCall);
+
+                LinearLayout linear2 = new LinearLayout(getContext());
+                linear2.setLayoutParams(params);
+                linear.setOrientation(LinearLayout.HORIZONTAL);
+
+                TextView txtCall = new TextView(getContext());
+                txtCall.setText("Telp :");
+                txtCall.setTextAppearance(R.style.TextAppearance_AppCompat_Subhead);
+
+                etTelpCall = new EditText(getContext());
+                etTelpCall.setLayoutParams(params);
+
+                linear2.addView(txtCall);
+                linear2.addView(etTelpCall);
+
+                parent.addView(linear);
+                parent.addView(linear2);
+            }
+        });
+
         etDate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,6 +131,7 @@ public class RegisterFragment extends Fragment {
 
         Button btn = view.findViewById(R.id.btnRegister);
 
+        //Register account
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -70,10 +141,36 @@ public class RegisterFragment extends Fragment {
         return view;
     }
 
+    //Membuat object user
     private User createUser(){
         return new User(etUsername.getText().toString(), etDate.getText().toString(), etDeviceName.getText().toString());
     }
 
+    //Membuat object list kontak
+    private List<Kontak> createKontaks(){
+        List<Kontak> temps = new ArrayList<>();
+
+        Kontak kontak = new Kontak();
+
+        for(int i = 0; i < parent.getChildCount(); i++){
+            LinearLayout temp = (LinearLayout)parent.getChildAt(i);
+
+            EditText et = (EditText)temp.getChildAt(1);
+
+
+            if(i % 2 != 0){
+                kontak.setTelp(et.getText().toString());
+                temps.add(kontak);
+                kontak = null;
+            }else {
+                kontak = new Kontak();
+                kontak.setName(et.getText().toString());
+            }
+        }
+        return temps;
+    }
+
+    //Menampilkan date
     public void showDate(){
         DatePickerFragment datePickerFragment = new DatePickerFragment();
         datePickerFragment.show(getFragmentManager(), "data");
@@ -100,6 +197,7 @@ public class RegisterFragment extends Fragment {
         });
     }
 
+    //Register account dengan email dan password dan menyimpan data user dan kontak pada firebase
     public void registerAccount(String email, String password){
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
@@ -110,6 +208,7 @@ public class RegisterFragment extends Fragment {
                     DatabaseReference myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
 
                     myRef.child("User").setValue(createUser());
+                    myRef.child("Kontak").setValue(createKontaks());
 
                     Intent intent = new Intent(getActivity(), MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

@@ -1,26 +1,29 @@
 package com.example.iot;
 
 public class Kontak {
-    private String hp;
-    private String rs;
+    private String name;
+    private String telp;
 
-    public Kontak(String hp, String rs){
-        this.hp = hp;
-        this.rs = rs;
-    }
-    public String getHp() {
-        return hp;
-    }
+    public Kontak(){}
 
-    public void setHp(String hp) {
-        this.hp = hp;
+    public Kontak(String name, String telp){
+        this.setName(name);
+        this.setTelp(telp);
     }
 
-    public String getRs() {
-        return rs;
+    public String getName() {
+        return name;
     }
 
-    public void setRs(String rs) {
-        this.rs = rs;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getTelp() {
+        return telp;
+    }
+
+    public void setTelp(String telp) {
+        this.telp = telp;
     }
 }

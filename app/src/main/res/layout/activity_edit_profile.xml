@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ProfileFragment"
-    android:orientation="vertical"
-    android:id="@+id/fragment_profile">
+    tools:context=".EditProfileActivity"
+    android:orientation="vertical">
 
     <androidx.appcompat.widget.AppCompatTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#a5d1c7"
-        android:text="Profile"
+        android:text="Edit Profile"
         android:textSize="24sp"
         android:paddingVertical="10dp"
         android:textAlignment="center"
@@ -30,32 +31,28 @@
         android:layout_marginLeft="20dp"
         android:layout_marginTop="20dp"/>
 
-    <TextView
+    <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="Ahmad"
-        android:id="@+id/txtUsername"
-        android:background="?attr/editTextBackground"
-        android:layout_marginHorizontal="20dp"/>
+        android:layout_marginHorizontal="20dp"
+        android:id="@+id/etEditUsername"
+        android:hint="Fauzan"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Umur"
+        android:text="Tanggal Lahir"
         android:textStyle="bold"
         android:textSize="20sp"
         android:textColor="@color/black"
         android:layout_marginLeft="20dp" />
 
-    <TextView
+    <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="20 tahun"
-        android:id="@+id/txtUmur"
-        android:background="?attr/editTextBackground"
-        android:layout_marginHorizontal="20dp"/>
+        android:layout_marginHorizontal="20dp"
+        android:id="@+id/etEditTanggalLahir"
+        android:hint="8/10/2000"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -66,39 +63,31 @@
         android:textColor="@color/black"
         android:layout_marginLeft="20dp" />
 
-    <TextView
+    <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="Ahmad"
-        android:id="@+id/txtDeviceName"
-        android:background="?attr/editTextBackground"
-        android:layout_marginHorizontal="20dp"/>
+        android:layout_marginHorizontal="20dp"
+        android:id="@+id/etEditDeviceName"
+        android:hint="8/10/2000"/>
 
-    <TextView
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="User ID"
-        android:textStyle="bold"
-        android:textSize="20sp"
-        android:textColor="@color/black"
-        android:layout_marginLeft="20dp"
-        android:layout_marginTop="20dp"/>
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/background"
-        android:layout_marginLeft="20dp"
-        android:id="@+id/ivQrCode"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Edit Profile"
-        android:id="@+id/btnEdit"
+        android:orientation="horizontal"
         android:layout_gravity="right"
-        android:layout_marginRight="40dp"
-        android:layout_marginTop="50dp"/>
+        android:layout_marginTop="50dp">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:id="@+id/btnCancel"
+            android:layout_marginRight="20dp"/>
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btnSave"
+            android:text="Save"
+            android:layout_marginRight="20dp"/>
+    </LinearLayout>
 </LinearLayout>

@@ -50,18 +50,20 @@ public class HomeFragment extends Fragment {
 
         myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
 
+        //Read data history terbaru dari firebase
         myRef.child("History").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                long size = snapshot.getChildrenCount();
+                    long size = snapshot.getChildrenCount();
 
-                History history = new History();
-                history = snapshot.child(String.valueOf(size - 1)).getValue(History.class);
+                    if(size > 0){
+                        History history = snapshot.child(String.valueOf(size - 1)).getValue(History.class);
 
-                txtDetak.setText(history.getDetak() +"");
-                txtKbb.setText(history.getKbb() + "");
-                txtDebu.setText((int)history.getDebu() + "");
+                        txtDetak.setText(history.getDetak() +"");
+                        txtKbb.setText(history.getKbb() + "");
+                        txtDebu.setText((int)history.getDebu() + "");
+                    }
             }
 
             @Override

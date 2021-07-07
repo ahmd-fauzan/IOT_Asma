@@ -53,23 +53,22 @@ public class HistoryFragment extends Fragment {
 
         myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
 
-        HistoryFactory historyFactory = HistoryFactory.getInstance();
-
+        //Read data history di firebase
         myRef.child("History").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<History> listHistory = new ArrayList<>();
-                for(int i = 0; i < snapshot.getChildrenCount(); i++){
+                if(snapshot.getChildrenCount() > 0){
+                    List<History> listHistory = new ArrayList<>();
+                    for(int i = 0; i < snapshot.getChildrenCount(); i++){
 
-                    listHistory.add(snapshot.child(String.valueOf(i)).getValue(History.class));
+                        listHistory.add(snapshot.child(String.valueOf(i)).getValue(History.class));
+                    }
+                    adapter = new Adapter(context, listHistory);
+
+                    GridLayoutManager gridLayoutManager = new GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false);
+                    list.setAdapter(adapter);
+                    list.setLayoutManager(gridLayoutManager);
                 }
-                adapter = new Adapter(context, listHistory);
-
-                GridLayoutManager gridLayoutManager = new GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false);
-                list.setAdapter(adapter);
-                list.setLayoutManager(gridLayoutManager);
-
-                MainActivity.currIndex = listHistory.size();
             }
 
             @Override
