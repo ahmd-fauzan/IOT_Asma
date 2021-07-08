@@ -2,14 +2,19 @@ package com.example.iot;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager.widget.ViewPager;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -55,6 +60,10 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CALL_PHONE}, 123);
+        }
 
         //Initialize firebase authentication
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -115,6 +124,21 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
 
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permission, int[] grantResult){
+        switch (requestCode){
+            case 123 :
+                if(grantResult[0] == PackageManager.PERMISSION_GRANTED){
+                    Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
+                }
+            default:
+                super.onRequestPermissionsResult(requestCode, permission, grantResult);
+        }
+    }
+
     //Read data terbaru dari antares
     private void readData(){
         antares.getLatestDataofDevice(0, ACCESS_KEY, PROJECT_NAME, user.getDeviceName());
@@ -167,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
                 else {
                     if(currIndex != array.length()){
                         readData();
+                        currIndex = array.length();
                     }
                 }
 

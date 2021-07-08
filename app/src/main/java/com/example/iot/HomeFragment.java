@@ -20,7 +20,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HomeFragment extends Fragment {
 
@@ -60,6 +62,49 @@ public class HomeFragment extends Fragment {
                     if(size > 0){
                         History history = snapshot.child(String.valueOf(size - 1)).getValue(History.class);
 
+                        DatabaseReference dataRef = database.getReference("Asma");
+                        dataRef.child("Kadar Debu").addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                for(int i = 0; i < snapshot.getChildrenCount(); i++){
+                                    Map<String, Long> min = new HashMap<>();
+                                    Map<String, String> kondisi = new HashMap<>();
+
+                                    min = (HashMap<String, Long>) snapshot.child(String.valueOf(i)).getValue();
+                                    kondisi = (HashMap<String, String>) snapshot.child(String.valueOf(i)).getValue();
+
+                                    if(Math.round(history.getDebu()) > min.get("Min Kadar").intValue() && Math.round(history.getDebu()) < min.get("Max Kadar").intValue()){
+                                        Log.d("STATE", "Kondisi Debu : " + kondisi.get("Kondisi"));
+                                    }
+                                }
+
+                                dataRef.child("Kelembaban Ruangan").addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        for(int i = 0; i < snapshot.getChildrenCount(); i++){
+                                            Map<String, Long> kadar = (HashMap<String, Long>) snapshot.child(String.valueOf(i)).getValue();
+                                            Map<String, String> kondisi = (HashMap<String, String>) snapshot.child(String.valueOf(i)).getValue();
+
+                                            if(Math.round(history.getKbb()) > kadar.get("Min Kadar").intValue() && Math.round(history.getKbb()) < kadar.get("Max Kadar").intValue()){
+                                                Log.d("STATE", "Kondisi Kelembaban : " + kondisi.get("Kondisi"));
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
                         txtDetak.setText(history.getDetak() +"");
                         txtKbb.setText(history.getKbb() + "");
                         txtDebu.setText((int)history.getDebu() + "");
