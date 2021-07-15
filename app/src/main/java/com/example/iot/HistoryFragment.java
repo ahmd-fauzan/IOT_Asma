@@ -3,23 +3,17 @@ package com.example.iot;
 import android.content.Context;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.example.iot.Model.History;
+import com.example.iot.ViewModel.DataListener;
+import com.example.iot.ViewModel.FirebaseHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +24,8 @@ public class HistoryFragment extends Fragment {
 
     Adapter adapter;
     Context context;
+
+    FirebaseHelper helper;
 
     public HistoryFragment(Context context) {
         // Required empty public constructor
@@ -47,33 +43,19 @@ public class HistoryFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
         list = view.findViewById(R.id.list);
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef;
+        helper = FirebaseHelper.getInstance();
 
-        myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
-
-        //Read data history di firebase
-        myRef.child("History").addValueEventListener(new ValueEventListener() {
+        helper.readHistory(new DataListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if(snapshot.getChildrenCount() > 0){
-                    List<History> listHistory = new ArrayList<>();
-                    for(int i = 0; i < snapshot.getChildrenCount(); i++){
+            public void onCompleteListener() {
+                List<History> historyList = new ArrayList<>();
+                historyList = helper.getHistory();
 
-                        listHistory.add(snapshot.child(String.valueOf(i)).getValue(History.class));
-                    }
-                    adapter = new Adapter(context, listHistory);
+                adapter = new Adapter(context, historyList);
 
-                    GridLayoutManager gridLayoutManager = new GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false);
-                    list.setAdapter(adapter);
-                    list.setLayoutManager(gridLayoutManager);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
+                GridLayoutManager gridLayoutManager = new GridLayoutManager(context, 2, GridLayoutManager.VERTICAL, false);
+                list.setAdapter(adapter);
+                list.setLayoutManager(gridLayoutManager);
             }
         });
 

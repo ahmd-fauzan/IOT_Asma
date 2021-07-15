@@ -1,14 +1,10 @@
 package com.example.iot;
 
-import android.app.ActionBar;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import android.print.PageRange;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,26 +13,18 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
-import org.w3c.dom.Text;
+import com.example.iot.Model.Kontak;
+import com.example.iot.Model.User;
+import com.example.iot.ViewModel.DataListener;
+import com.example.iot.ViewModel.FirebaseHelper;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 public class RegisterFragment extends Fragment {
-
-    FirebaseAuth auth;
 
     private EditText etUsername;
     private EditText etDate;
@@ -50,15 +38,16 @@ public class RegisterFragment extends Fragment {
 
     private LinearLayout parent;
 
-    public RegisterFragment(FirebaseAuth auth){
-        this.auth = auth;
-    }
+    FirebaseHelper helper;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
 
         View view = inflater.inflate(R.layout.fragment_register, container, false);;
+
+        helper = FirebaseHelper.getInstance();
 
         etUsername = view.findViewById(R.id.etUsername);
         etDate = view.findViewById(R.id.etDate);
@@ -135,9 +124,27 @@ public class RegisterFragment extends Fragment {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                registerAccount(etEmail.getText().toString(), etPassword.getText().toString());
+                helper.registerAccount(etEmail.getText().toString(), etPassword.getText().toString(), new DataListener() {
+                    @Override
+                    public void onCompleteListener() {
+                        helper.insertUser(createUser(), new DataListener() {
+                            @Override
+                            public void onCompleteListener() {
+                                helper.insertKontak(createKontaks(), new DataListener() {
+                                    @Override
+                                    public void onCompleteListener() {
+                                        Intent intent = new Intent(getActivity(), MainActivity.class);
+                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                        startActivity(intent);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
             }
         });
+
         return view;
     }
 
@@ -193,27 +200,6 @@ public class RegisterFragment extends Fragment {
                     hari = ""+calendar.get(Calendar.DAY_OF_MONTH);
 
                 etDate.setText(hari + "/" + bulan + "/" + tahun);
-            }
-        });
-    }
-
-    //Register account dengan email dan password dan menyimpan data user dan kontak pada firebase
-    public void registerAccount(String email, String password){
-        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if(task.isSuccessful()){
-
-                    FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
-
-                    myRef.child("User").setValue(createUser());
-                    myRef.child("Kontak").setValue(createKontaks());
-
-                    Intent intent = new Intent(getActivity(), MainActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                }
             }
         });
     }

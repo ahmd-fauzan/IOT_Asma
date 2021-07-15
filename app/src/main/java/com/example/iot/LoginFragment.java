@@ -12,6 +12,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.example.iot.ViewModel.DataListener;
+import com.example.iot.ViewModel.FirebaseHelper;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -20,16 +22,15 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginFragment extends Fragment {
 
-    private FirebaseAuth auth;
+    private FirebaseHelper helper;
 
-    public LoginFragment(FirebaseAuth auth){
-        this.auth = auth;
-    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_login, container, false);
+
+        helper = FirebaseHelper.getInstance();
 
         EditText etEmail = view.findViewById(R.id.etEmail);
         EditText etPassword = view.findViewById(R.id.etPassword);
@@ -38,24 +39,19 @@ public class LoginFragment extends Fragment {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loginAccount(etEmail.getText().toString(), etPassword.getText().toString());
+                helper.loginAccount(etEmail.getText().toString(), etPassword.getText().toString(), new DataListener() {
+                    @Override
+                    public void onCompleteListener() {
+                        Intent intent = new Intent(getActivity(), MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                    }
+                });
             }
         });
         return view;
     }
 
     //Login account dengan email dan password
-    public void loginAccount(String email, String password){
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if(task.isSuccessful()){
-                    Intent intent = new Intent(getActivity(), MainActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                }
-            }
-        });
-    }
 
 }

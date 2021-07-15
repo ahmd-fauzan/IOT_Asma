@@ -1,6 +1,5 @@
 package com.example.iot;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -14,17 +13,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.example.iot.Model.History;
+import com.example.iot.Model.User;
+import com.example.iot.ViewModel.DataListener;
+import com.example.iot.ViewModel.FirebaseHelper;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -50,8 +46,9 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
     private static String PROJECT_NAME = "SistemMonitoringPenderitaAsma";
     private int currIndex = 0;
 
+    FirebaseHelper helper;
+
     //FIREBASE
-    DatabaseReference myRef;
 
     //User
     User user = null;
@@ -65,11 +62,10 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CALL_PHONE}, 123);
         }
 
-        //Initialize firebase authentication
-        FirebaseAuth auth = FirebaseAuth.getInstance();
+        helper = FirebaseHelper.getInstance();
 
         //Jika tidak terdapat user yang login, maka pindah ke activityLogin
-        if(auth.getCurrentUser() == null){
+        if(helper.getAccountUser() == null){
             Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             return;
@@ -80,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
         btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                auth.signOut();
+                helper.logOut();
 
                 Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                 startActivity(intent);
@@ -89,17 +85,33 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
         });
 
         //Read data user from firebase every data change and in first run
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
-
-        myRef.child("User").addListenerForSingleValueEvent(new ValueEventListener() {
+        helper.readKadarDebu(new DataListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                user = snapshot.getValue(User.class);
+            public void onCompleteListener() {
+
+            }
+        });
+        helper.readDetak(new DataListener() {
+            @Override
+            public void onCompleteListener() {
+
+            }
+        });
+        helper.readKelembaban(new DataListener() {
+            @Override
+            public void onCompleteListener() {
+
+            }
+        });
+
+        helper.readUser(new DataListener() {
+            @Override
+            public void onCompleteListener() {
+                user = helper.getUser();
 
                 List<Fragment> fragmentList = new ArrayList<>();
 
-                fragmentList.add(new HomeFragment(user.getUsername()));
+                fragmentList.add(new HomeFragment());
                 fragmentList.add(new HistoryFragment(getApplicationContext()));
                 fragmentList.add(new CallFragment(getApplicationContext()));
                 fragmentList.add(new ProfileFragment());
@@ -109,11 +121,6 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
                 tabLayout.initialize(viewPager, getSupportFragmentManager(), fragmentList, null);
 
                 content();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
             }
         });
 
@@ -165,7 +172,12 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
                             history.setDetak(temp.getInt("heartRate"));
 
                             //Insert data terbaru dari antares pada firebase
-                            insertHistory(history);
+                            helper.insertHistory(history, new DataListener() {
+                                @Override
+                                public void onCompleteListener() {
+
+                                }
+                            });
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -203,32 +215,6 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
     }
 
     //Insert data Sensor ke firebase
-    private void insertHistory(History history){
-        myRef.child("History").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                long index = snapshot.getChildrenCount();
-
-                myRef.child("History").child(String.valueOf(index)).setValue(history).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if(task.isSuccessful()){
-                            Log.d("STATE", "Data berhasil disimpan");
-                        }
-                        else {
-                            Log.d("STATE", "Data gagal disimpan");
-                        }
-                    }
-                });
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-    }
 
     //Mengubah tipe data Date to String
     private String dateToString(){

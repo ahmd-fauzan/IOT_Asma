@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.iot.ViewModel.FirebaseHelper;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -23,8 +24,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import java.util.regex.Pattern;
 
 public class LoginActivity extends AppCompatActivity {
-
-    FirebaseAuth auth;
     String tag;
 
     @Override
@@ -32,9 +31,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        auth = FirebaseAuth.getInstance();
-
-        callFragment(new LoginFragment(auth));
+        callFragment(new LoginFragment());
         tag = "Login";
 
         Button button = findViewById(R.id.btnSwitch);
@@ -46,12 +43,12 @@ public class LoginActivity extends AppCompatActivity {
                 button.setText(tag);
 
                 if(tag == "Login"){
-                    callFragment(new RegisterFragment(auth));
+                    callFragment(new RegisterFragment());
 
                     tag = "SignUp";
                 }
                 else{
-                    callFragment(new LoginFragment(auth));
+                    callFragment(new LoginFragment());
                     tag = "Login";
                 }
             }

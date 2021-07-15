@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.Model;
 
 public class User{
     private String username;

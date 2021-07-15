@@ -4,7 +4,6 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,25 +11,33 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.iot.Model.Debu;
+import com.example.iot.Model.DetakJantung;
+import com.example.iot.Model.History;
+import com.example.iot.Model.Kelembaban;
+import com.example.iot.Model.User;
+import com.example.iot.ViewModel.DataListener;
+import com.example.iot.ViewModel.FirebaseHelper;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class HomeFragment extends Fragment {
 
-    String id;
-    public HomeFragment(String id) {
-        // Required empty public constructor
-        this.id = id;
-    }
+    FirebaseHelper helper;
+
+    TextView txtKondisiTubuh;
+    TextView txtKondisiRuangan;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -43,82 +50,77 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
+        txtKondisiRuangan = view.findViewById(R.id.txtKondisiRuangan);
+        txtKondisiTubuh = view.findViewById(R.id.txtKondisiTubuh);
+
+        helper = FirebaseHelper.getInstance();
+
         TextView txtDetak = view.findViewById(R.id.txtDetakJantung);
         TextView txtKbb = view.findViewById(R.id.txtKelembaban);
         TextView txtDebu = view.findViewById(R.id.txtDebu);
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef;
+        TextView username = view.findViewById(R.id.username);
 
-        myRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
-
-        //Read data history terbaru dari firebase
-        myRef.child("History").addValueEventListener(new ValueEventListener() {
+        helper.readLatestHistory(new DataListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onCompleteListener() {
+                History history = helper.getLatestHistory();
+                User user = helper.getUser();
 
-                    long size = snapshot.getChildrenCount();
+                username.setText(user.getUsername());
+                txtDetak.setText(history.getDetak() +"");
+                txtKbb.setText(history.getKbb() + "");
+                txtDebu.setText((int)history.getDebu() + "");
 
-                    if(size > 0){
-                        History history = snapshot.child(String.valueOf(size - 1)).getValue(History.class);
+                List<DetakJantung> detakJantung = helper.getDetakJantungs();
+                List<Debu> debus = helper.getDebus();
+                List<Kelembaban> kelembabans = helper.getKelembabans();
+                int umur = calculateAge(stringToDate(user.getDateOfBirth()));
 
-                        DatabaseReference dataRef = database.getReference("Asma");
-                        dataRef.child("Kadar Debu").addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-
-                                for(int i = 0; i < snapshot.getChildrenCount(); i++){
-                                    Map<String, Long> min = new HashMap<>();
-                                    Map<String, String> kondisi = new HashMap<>();
-
-                                    min = (HashMap<String, Long>) snapshot.child(String.valueOf(i)).getValue();
-                                    kondisi = (HashMap<String, String>) snapshot.child(String.valueOf(i)).getValue();
-
-                                    if(Math.round(history.getDebu()) > min.get("Min Kadar").intValue() && Math.round(history.getDebu()) < min.get("Max Kadar").intValue()){
-                                        Log.d("STATE", "Kondisi Debu : " + kondisi.get("Kondisi"));
-                                    }
-                                }
-
-                                dataRef.child("Kelembaban Ruangan").addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        for(int i = 0; i < snapshot.getChildrenCount(); i++){
-                                            Map<String, Long> kadar = (HashMap<String, Long>) snapshot.child(String.valueOf(i)).getValue();
-                                            Map<String, String> kondisi = (HashMap<String, String>) snapshot.child(String.valueOf(i)).getValue();
-
-                                            if(Math.round(history.getKbb()) > kadar.get("Min Kadar").intValue() && Math.round(history.getKbb()) < kadar.get("Max Kadar").intValue()){
-                                                Log.d("STATE", "Kondisi Kelembaban : " + kondisi.get("Kondisi"));
-                                            }
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
-                                });
-
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-
-                            }
-                        });
-                        txtDetak.setText(history.getDetak() +"");
-                        txtKbb.setText(history.getKbb() + "");
-                        txtDebu.setText((int)history.getDebu() + "");
+                for(DetakJantung detak : detakJantung){
+                    if(umur >= detak.getMinUmur() && umur <= detak.getMaxUmur()){
+                        if(history.getDetak() >= detak.getMinDetak() && history.getDetak() <= detak.getMaxDetak()){
+                            txtKondisiTubuh.setText("Kondisi Tubuh Normal");
+                        }
+                        else{
+                            txtKondisiTubuh.setText("Kondisi Tubuh Tidak Normal");
+                        }
+                        break;
                     }
-            }
+                }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                for(Debu debu : debus){
+                    if(history.getDebu() >= debu.getMinKadar() && history.getDebu() <= debu.getMaxKadar()){
+                        txtKondisiRuangan.setText("Kondisi Debu : " + debu.getKondisi() + "\n");
+                        break;
+                    }
+                }
 
+                for(Kelembaban kelembaban : kelembabans){
+                    if(history.getKbb() >= kelembaban.getMinKadar() && history.getKbb() <= kelembaban.getMaxKadar()){
+                        txtKondisiRuangan.append("Kelembaban Ruangan : " + kelembaban.getKondisi());
+                        break;
+                    }
+                }
             }
         });
 
-        TextView username = view.findViewById(R.id.username);
-        username.setText(id);
         return view;
+    }
+
+    private int calculateAge(Calendar date){
+        LocalDate localDate = LocalDate.of(date.get(Calendar.YEAR), date.get(Calendar.MONTH) + 1, date.get(Calendar.DATE));
+        Period diff = Period.between(localDate, LocalDate.now());
+        return diff.getYears();
+    }
+
+    private Calendar stringToDate(String date){
+        Calendar calendar = Calendar.getInstance();
+        try {//w  w w.  j a va 2 s  .co m
+            calendar.setTime(new SimpleDateFormat("dd/MM/yyyy")
+                    .parse(date));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return calendar;
     }
 }

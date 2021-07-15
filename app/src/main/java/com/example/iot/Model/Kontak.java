@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.Model;
 
 public class Kontak {
     private String name;
