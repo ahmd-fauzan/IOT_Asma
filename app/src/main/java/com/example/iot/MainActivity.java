@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,9 +59,7 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CALL_PHONE}, 123);
-        }
+        ProgressBar progressBar = findViewById(R.id.progress);
 
         helper = FirebaseHelper.getInstance();
 
@@ -87,28 +86,48 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
         //Read data user from firebase every data change and in first run
         helper.readKadarDebu(new DataListener() {
             @Override
-            public void onCompleteListener() {
+            public void onProcess() {
+                progressBar.setVisibility(View.VISIBLE);
+            }
 
+            @Override
+            public void onCompleteListener() {
+                progressBar.setVisibility(View.INVISIBLE);
             }
         });
         helper.readDetak(new DataListener() {
             @Override
-            public void onCompleteListener() {
+            public void onProcess() {
+                progressBar.setVisibility(View.VISIBLE);
+            }
 
+            @Override
+            public void onCompleteListener() {
+                progressBar.setVisibility(View.INVISIBLE);
             }
         });
         helper.readKelembaban(new DataListener() {
             @Override
-            public void onCompleteListener() {
+            public void onProcess() {
+                progressBar.setVisibility(View.VISIBLE);
+            }
 
+            @Override
+            public void onCompleteListener() {
+                progressBar.setVisibility(View.INVISIBLE);
             }
         });
 
         helper.readUser(new DataListener() {
             @Override
+            public void onProcess() {
+                progressBar.setVisibility(View.VISIBLE);
+            }
+
+            @Override
             public void onCompleteListener() {
                 user = helper.getUser();
-
+                progressBar.setVisibility(View.INVISIBLE);
                 List<Fragment> fragmentList = new ArrayList<>();
 
                 fragmentList.add(new HomeFragment());
@@ -129,21 +148,6 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
         antares.addListener(this);
 
 
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permission, int[] grantResult){
-        switch (requestCode){
-            case 123 :
-                if(grantResult[0] == PackageManager.PERMISSION_GRANTED){
-                    Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
-                }
-                else{
-                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show();
-                }
-            default:
-                super.onRequestPermissionsResult(requestCode, permission, grantResult);
-        }
     }
 
     //Read data terbaru dari antares
@@ -167,12 +171,17 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
                             JSONObject temp = new JSONObject(body);
                             History history = new History();
                             history.setDate(dateToString());
-                            history.setDebu(temp.getInt("dustDensity"));
-                            history.setKbb(temp.getInt("humidity"));
+                            history.setDebu(Float.parseFloat(temp.getString("dustDensity")));
+                            history.setKbb(Integer.parseInt(temp.getString("humidity")));
                             history.setDetak(temp.getInt("heartRate"));
 
                             //Insert data terbaru dari antares pada firebase
                             helper.insertHistory(history, new DataListener() {
+                                @Override
+                                public void onProcess() {
+
+                                }
+
                                 @Override
                                 public void onCompleteListener() {
 

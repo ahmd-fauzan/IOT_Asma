@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import com.example.iot.ViewModel.DataListener;
 import com.example.iot.ViewModel.FirebaseHelper;
@@ -29,7 +30,8 @@ public class LoginFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_login, container, false);
-
+        ProgressBar progressBar = view.findViewById(R.id.loginProgress);
+        progressBar.setVisibility(View.INVISIBLE);
         helper = FirebaseHelper.getInstance();
 
         EditText etEmail = view.findViewById(R.id.etEmail);
@@ -41,7 +43,15 @@ public class LoginFragment extends Fragment {
             public void onClick(View v) {
                 helper.loginAccount(etEmail.getText().toString(), etPassword.getText().toString(), new DataListener() {
                     @Override
+                    public void onProcess() {
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
+
+                    @Override
                     public void onCompleteListener() {
+                        progressBar.setVisibility(View.INVISIBLE);
+                        helper.initializeAuth();
+
                         Intent intent = new Intent(getActivity(), MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);

@@ -50,6 +50,8 @@ public class HomeFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
+        Log.d("HOME", "Home Call");
+
         txtKondisiRuangan = view.findViewById(R.id.txtKondisiRuangan);
         txtKondisiTubuh = view.findViewById(R.id.txtKondisiTubuh);
 
@@ -62,43 +64,49 @@ public class HomeFragment extends Fragment {
 
         helper.readLatestHistory(new DataListener() {
             @Override
+            public void onProcess() {
+
+            }
+
+            @Override
             public void onCompleteListener() {
                 History history = helper.getLatestHistory();
                 User user = helper.getUser();
+                if(history != null){
+                    username.setText(user.getUsername());
+                    txtDetak.setText(history.getDetak() +"");
+                    txtKbb.setText(history.getKbb() + "");
+                    txtDebu.setText((int)history.getDebu() + "");
 
-                username.setText(user.getUsername());
-                txtDetak.setText(history.getDetak() +"");
-                txtKbb.setText(history.getKbb() + "");
-                txtDebu.setText((int)history.getDebu() + "");
+                    List<DetakJantung> detakJantung = helper.getDetakJantungs();
+                    List<Debu> debus = helper.getDebus();
+                    List<Kelembaban> kelembabans = helper.getKelembabans();
+                    int umur = calculateAge(stringToDate(user.getDateOfBirth()));
 
-                List<DetakJantung> detakJantung = helper.getDetakJantungs();
-                List<Debu> debus = helper.getDebus();
-                List<Kelembaban> kelembabans = helper.getKelembabans();
-                int umur = calculateAge(stringToDate(user.getDateOfBirth()));
-
-                for(DetakJantung detak : detakJantung){
-                    if(umur >= detak.getMinUmur() && umur <= detak.getMaxUmur()){
-                        if(history.getDetak() >= detak.getMinDetak() && history.getDetak() <= detak.getMaxDetak()){
-                            txtKondisiTubuh.setText("Kondisi Tubuh Normal");
+                    for(DetakJantung detak : detakJantung){
+                        if(umur >= detak.getMinUmur() && umur <= detak.getMaxUmur()){
+                            if(history.getDetak() >= detak.getMinDetak() && history.getDetak() <= detak.getMaxDetak()){
+                                txtKondisiTubuh.setText("Kondisi Tubuh Normal");
+                            }
+                            else{
+                                txtKondisiTubuh.setText("Kondisi Tubuh Tidak Normal");
+                            }
+                            break;
                         }
-                        else{
-                            txtKondisiTubuh.setText("Kondisi Tubuh Tidak Normal");
+                    }
+
+                    for(Debu debu : debus){
+                        if(history.getDebu() >= debu.getMinKadar() && history.getDebu() <= debu.getMaxKadar()){
+                            txtKondisiRuangan.setText("Kondisi Debu : " + debu.getKondisi() + "\n");
+                            break;
                         }
-                        break;
                     }
-                }
 
-                for(Debu debu : debus){
-                    if(history.getDebu() >= debu.getMinKadar() && history.getDebu() <= debu.getMaxKadar()){
-                        txtKondisiRuangan.setText("Kondisi Debu : " + debu.getKondisi() + "\n");
-                        break;
-                    }
-                }
-
-                for(Kelembaban kelembaban : kelembabans){
-                    if(history.getKbb() >= kelembaban.getMinKadar() && history.getKbb() <= kelembaban.getMaxKadar()){
-                        txtKondisiRuangan.append("Kelembaban Ruangan : " + kelembaban.getKondisi());
-                        break;
+                    for(Kelembaban kelembaban : kelembabans){
+                        if(history.getKbb() >= kelembaban.getMinKadar() && history.getKbb() <= kelembaban.getMaxKadar()){
+                            txtKondisiRuangan.append("Kelembaban Ruangan : " + kelembaban.getKondisi());
+                            break;
+                        }
                     }
                 }
             }

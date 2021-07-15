@@ -13,6 +13,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.iot.Model.Kontak;
@@ -47,6 +48,8 @@ public class RegisterFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_register, container, false);;
 
+        ProgressBar progressBar = view.findViewById(R.id.registerProgress);
+        progressBar.setVisibility(View.INVISIBLE);
         helper = FirebaseHelper.getInstance();
 
         etUsername = view.findViewById(R.id.etUsername);
@@ -126,13 +129,32 @@ public class RegisterFragment extends Fragment {
             public void onClick(View v) {
                 helper.registerAccount(etEmail.getText().toString(), etPassword.getText().toString(), new DataListener() {
                     @Override
+                    public void onProcess() {
+                        progressBar.setVisibility(View.VISIBLE);
+                    }
+
+                    @Override
                     public void onCompleteListener() {
+                        helper.initializeAuth();
+                        progressBar.setVisibility(View.INVISIBLE);
                         helper.insertUser(createUser(), new DataListener() {
                             @Override
+                            public void onProcess() {
+                                progressBar.setVisibility(View.VISIBLE);
+                            }
+
+                            @Override
                             public void onCompleteListener() {
+                                progressBar.setVisibility(View.INVISIBLE);
                                 helper.insertKontak(createKontaks(), new DataListener() {
                                     @Override
+                                    public void onProcess() {
+                                        progressBar.setVisibility(View.VISIBLE);
+                                    }
+
+                                    @Override
                                     public void onCompleteListener() {
+                                        progressBar.setVisibility(View.INVISIBLE);
                                         Intent intent = new Intent(getActivity(), MainActivity.class);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                         startActivity(intent);

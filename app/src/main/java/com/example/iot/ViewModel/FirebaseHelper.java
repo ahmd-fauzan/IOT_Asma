@@ -1,5 +1,7 @@
 package com.example.iot.ViewModel;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.example.iot.Model.Debu;
@@ -20,9 +22,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class FirebaseHelper {
     static FirebaseHelper instance;
@@ -44,8 +44,12 @@ public class FirebaseHelper {
     public FirebaseHelper(){
         this.database = FirebaseDatabase.getInstance();
         this.auth = FirebaseAuth.getInstance();
-        this.accountRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
-        this.asmaRef = database.getReference("Asma");
+
+        if(auth.getCurrentUser() != null){
+            this.accountRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
+            this.asmaRef = database.getReference("Asma");
+        }
+
         this.user = new User();
         this.history = new History();
         detakJantungs = new ArrayList<>();
@@ -59,12 +63,21 @@ public class FirebaseHelper {
 
         return instance;
     }
+
+    public void initializeAuth(){
+        this.accountRef = database.getReference("Account").child(auth.getCurrentUser().getUid());
+        this.asmaRef = database.getReference("Asma");
+    }
+
     public void readHistory(DataListener dataListener){
         historyList = new ArrayList<>();
         accountRef.child("History").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Log.d("FIREBASE", "Data Changed");
+
                 for(int i = 0; i < snapshot.getChildrenCount(); i++){
+                    dataListener.onProcess();
                     History history = snapshot.child(String.valueOf(i)).getValue(History.class);
 
                     historyList.add(history);
@@ -83,6 +96,7 @@ public class FirebaseHelper {
         accountRef.child("User").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                dataListener.onProcess();
                 user = snapshot.getValue(User.class);
                 dataListener.onCompleteListener();
             }
@@ -100,6 +114,7 @@ public class FirebaseHelper {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for(int i = 0; i < snapshot.getChildrenCount(); i++){
+                    dataListener.onProcess();
                     kontakList.add(snapshot.child(String.valueOf(i)).getValue(Kontak.class));
                 }
                 dataListener.onCompleteListener();
@@ -116,6 +131,7 @@ public class FirebaseHelper {
         accountRef.child("History").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull   DataSnapshot snapshot) {
+                dataListener.onProcess();
                 long size = snapshot.getChildrenCount();
                 history = snapshot.child(String.valueOf(size - 1)).getValue(History.class);
                 dataListener.onCompleteListener();

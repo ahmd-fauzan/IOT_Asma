@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,11 +33,19 @@ public class CallFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_call, container, false);
+
+        Log.d("CALL", "Call call");
+
         RecyclerView recyclerView = view.findViewById(R.id.callList);
 
         helper = FirebaseHelper.getInstance();
 
         helper.readKontak(new DataListener() {
+            @Override
+            public void onProcess() {
+
+            }
+
             @Override
             public void onCompleteListener() {
                 List<Kontak> kontakList = new ArrayList<>();
