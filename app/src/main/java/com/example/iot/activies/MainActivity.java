@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
                             History history = new History();
                             history.setDate(dateToString());
                             history.setDebu(Float.parseFloat(temp.getString("dustDensity")));
-                            history.setKbb(Integer.parseInt(temp.getString("humidity")));
+                            history.setKbb((int)Float.parseFloat(temp.getString("humidity")));
                             history.setDetak(temp.getInt("heartRate"));
 
                             //Insert data terbaru dari antares pada firebase
