@@ -2,6 +2,7 @@ package com.example.iot.activies;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
@@ -52,10 +53,11 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
     int notifikasi = 1;
     FirebaseHelper helper;
 
+    boolean run = true;
     //FIREBASE
 
     //User
-    User user = null;
+    User users = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,12 +107,24 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
         antares = new AntaresHTTPAPI();
         antares.addListener(this);
 
+        viewModel.getUser().observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                users = user;
+
+                if(run){
+                    content();
+                    run = false;
+                }
+            }
+        });
+
 
     }
 
     //Read data terbaru dari antares
     private void readData(){
-        antares.getLatestDataofDevice(0, ACCESS_KEY, PROJECT_NAME, user.getDeviceName());
+        antares.getLatestDataofDevice(0, ACCESS_KEY, PROJECT_NAME, users.getDeviceName());
     }
 
     //** Respon saat menggunakan method antares **//
@@ -193,8 +207,8 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
 
     //Setiap 1 minute cek data antares apakah berubah atau tidak
     public void content(){
-        antares.getDataIDofDevice(1, ACCESS_KEY, PROJECT_NAME, user.getDeviceName());
-
+        antares.getDataIDofDevice(1, ACCESS_KEY, PROJECT_NAME, users.getDeviceName());
+        Log.d("STATE", "refresh");
         refresh(1000);
     }
 
