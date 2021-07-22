@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.models;
 
 public class ScreenItem {
     String Title, Description;

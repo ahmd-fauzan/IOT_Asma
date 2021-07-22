@@ -1,26 +1,28 @@
-package com.example.iot;
+package com.example.iot.activies;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.viewpager.widget.ViewPager;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.example.iot.Model.History;
-import com.example.iot.Model.User;
-import com.example.iot.ViewModel.DataListener;
-import com.example.iot.ViewModel.FirebaseHelper;
+import com.example.iot.R;
+import com.example.iot.fragments.CallFragment;
+import com.example.iot.fragments.HistoryFragment;
+import com.example.iot.fragments.HomeFragment;
+import com.example.iot.fragments.ProfileFragment;
+import com.example.iot.models.History;
+import com.example.iot.models.User;
+import com.example.iot.viewmodels.AsmaViewModel;
+import com.example.iot.viewmodels.AsmaViewModelFactory;
+import com.example.iot.viewmodels.DataListener;
+import com.example.iot.repository.FirebaseHelper;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import org.json.JSONArray;
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
     private static String PROJECT_NAME = "SistemMonitoringPenderitaAsma";
     private int currIndex = 0;
 
+    int notifikasi = 1;
     FirebaseHelper helper;
 
     //FIREBASE
@@ -59,8 +62,6 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ProgressBar progressBar = findViewById(R.id.progress);
-
         helper = FirebaseHelper.getInstance();
 
         //Jika tidak terdapat user yang login, maka pindah ke activityLogin
@@ -69,6 +70,12 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
             startActivity(intent);
             return;
         }
+
+        AsmaViewModelFactory factory = new AsmaViewModelFactory();
+        AsmaViewModel viewModel = new ViewModelProvider(this, factory).get(AsmaViewModel.class);
+
+        viewModel.readUser();
+        viewModel.readKontak();
 
         //Button untuk logout
         ExtendedFloatingActionButton btnLogout = findViewById(R.id.btnLogout);
@@ -83,65 +90,16 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
             }
         });
 
-        //Read data user from firebase every data change and in first run
-        helper.readKadarDebu(new DataListener() {
-            @Override
-            public void onProcess() {
-                progressBar.setVisibility(View.VISIBLE);
-            }
+        List<Fragment> fragmentList = new ArrayList<>();
 
-            @Override
-            public void onCompleteListener() {
-                progressBar.setVisibility(View.INVISIBLE);
-            }
-        });
-        helper.readDetak(new DataListener() {
-            @Override
-            public void onProcess() {
-                progressBar.setVisibility(View.VISIBLE);
-            }
+        fragmentList.add(new HomeFragment());
+        fragmentList.add(new HistoryFragment(getApplicationContext()));
+        fragmentList.add(new CallFragment(getApplicationContext()));
+        fragmentList.add(new ProfileFragment());
 
-            @Override
-            public void onCompleteListener() {
-                progressBar.setVisibility(View.INVISIBLE);
-            }
-        });
-        helper.readKelembaban(new DataListener() {
-            @Override
-            public void onProcess() {
-                progressBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onCompleteListener() {
-                progressBar.setVisibility(View.INVISIBLE);
-            }
-        });
-
-        helper.readUser(new DataListener() {
-            @Override
-            public void onProcess() {
-                progressBar.setVisibility(View.VISIBLE);
-            }
-
-            @Override
-            public void onCompleteListener() {
-                user = helper.getUser();
-                progressBar.setVisibility(View.INVISIBLE);
-                List<Fragment> fragmentList = new ArrayList<>();
-
-                fragmentList.add(new HomeFragment());
-                fragmentList.add(new HistoryFragment(getApplicationContext()));
-                fragmentList.add(new CallFragment(getApplicationContext()));
-                fragmentList.add(new ProfileFragment());
-
-                ViewPager viewPager = findViewById(R.id.viewPager);
-                SpaceTabLayout tabLayout = findViewById(R.id.spaceTabLayout);
-                tabLayout.initialize(viewPager, getSupportFragmentManager(), fragmentList, null);
-
-                content();
-            }
-        });
+        ViewPager viewPager = findViewById(R.id.viewPager);
+        SpaceTabLayout tabLayout = findViewById(R.id.spaceTabLayout);
+        tabLayout.initialize(viewPager, getSupportFragmentManager(), fragmentList, null);
 
         //Initilize antares
         antares = new AntaresHTTPAPI();
@@ -253,4 +211,6 @@ public class MainActivity extends AppCompatActivity implements AntaresHTTPAPI.On
 
         handler.postDelayed(runnable, milisecond * 60);
     }
+
+
 }

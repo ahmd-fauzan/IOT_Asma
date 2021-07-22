@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.fragments;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -14,7 +14,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.iot.Model.User;
+import com.example.iot.activies.EditProfileActivity;
+import com.example.iot.R;
+import com.example.iot.models.User;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

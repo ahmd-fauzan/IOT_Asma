@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.fragments;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;

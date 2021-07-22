@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -10,7 +10,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.iot.Model.History;
+import com.example.iot.R;
+import com.example.iot.models.History;
 
 import java.util.List;
 

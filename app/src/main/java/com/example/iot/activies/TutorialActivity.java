@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.activies;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -18,6 +18,9 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.iot.R;
+import com.example.iot.adapters.IntroAdapter;
+import com.example.iot.models.ScreenItem;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;

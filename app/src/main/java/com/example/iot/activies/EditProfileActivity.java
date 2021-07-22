@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.activies;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,7 +10,9 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 
-import com.example.iot.Model.User;
+import com.example.iot.R;
+import com.example.iot.fragments.DatePickerFragment;
+import com.example.iot.models.User;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;

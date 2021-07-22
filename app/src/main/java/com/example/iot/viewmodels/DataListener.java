@@ -1,4 +1,4 @@
-package com.example.iot.ViewModel;
+package com.example.iot.viewmodels;
 
 public interface DataListener {
     void onProcess();

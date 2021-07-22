@@ -1,9 +1,8 @@
-package com.example.iot;
+package com.example.iot.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -13,17 +12,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
-import com.example.iot.ViewModel.DataListener;
-import com.example.iot.ViewModel.FirebaseHelper;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.iot.activies.MainActivity;
+import com.example.iot.R;
+import com.example.iot.viewmodels.DataListener;
+import com.example.iot.repository.FirebaseHelper;
 
 
 public class LoginFragment extends Fragment {
 
     private FirebaseHelper helper;
+    EditText etEmail;
+    EditText etPassword;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -34,13 +33,19 @@ public class LoginFragment extends Fragment {
         progressBar.setVisibility(View.INVISIBLE);
         helper = FirebaseHelper.getInstance();
 
-        EditText etEmail = view.findViewById(R.id.etEmail);
-        EditText etPassword = view.findViewById(R.id.etPassword);
+        etEmail = view.findViewById(R.id.etEmail);
+        etPassword = view.findViewById(R.id.etPassword);
         Button btn = view.findViewById(R.id.btnLogin);
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(!validateEmail())
+                    return;
+
+                if(!validatePassword())
+                    return;
+
                 helper.loginAccount(etEmail.getText().toString(), etPassword.getText().toString(), new DataListener() {
                     @Override
                     public void onProcess() {
@@ -59,9 +64,41 @@ public class LoginFragment extends Fragment {
                 });
             }
         });
+
+
         return view;
     }
 
-    //Login account dengan email dan password
+    private boolean validateEmail() {
+
+        String val = etEmail.getText().toString().trim();
+        String checkEmail = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
+
+        if (val.isEmpty()) {
+            etEmail.setError("Field can not  be empity");
+            return false;
+        }
+
+        if (!val.matches(checkEmail)){
+            etEmail.setError("Invalid etEmail!");
+            return false;
+        }
+        return true;
+
+    }
+
+    private boolean validatePassword() {
+
+        String val = etPassword.getText().toString().trim();
+
+        if (val.isEmpty()) {
+            etPassword.setError("Field can not  be empity");
+            return false;
+        }
+
+        return true;
+
+    }
+    //Login account dengan etEmail dan etPassword
 
 }

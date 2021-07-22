@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,10 +16,12 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.example.iot.Model.Kontak;
-import com.example.iot.Model.User;
-import com.example.iot.ViewModel.DataListener;
-import com.example.iot.ViewModel.FirebaseHelper;
+import com.example.iot.activies.MainActivity;
+import com.example.iot.R;
+import com.example.iot.models.Kontak;
+import com.example.iot.models.User;
+import com.example.iot.viewmodels.DataListener;
+import com.example.iot.repository.FirebaseHelper;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -123,10 +125,19 @@ public class RegisterFragment extends Fragment {
 
         Button btn = view.findViewById(R.id.btnRegister);
 
-        //Register account
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                if(!validateUsername())
+                    return;
+
+                if(!validateEmail())
+                    return;
+
+                if(!validatePassword())
+                    return;
+
                 helper.registerAccount(etEmail.getText().toString(), etPassword.getText().toString(), new DataListener() {
                     @Override
                     public void onProcess() {
@@ -135,6 +146,15 @@ public class RegisterFragment extends Fragment {
 
                     @Override
                     public void onCompleteListener() {
+                        if(!validateUsername())
+                            return;
+
+                        if(!validateEmail())
+                            return;
+
+                        if (!validatePassword())
+                            return;
+
                         helper.initializeAuth();
                         progressBar.setVisibility(View.INVISIBLE);
                         helper.insertUser(createUser(), new DataListener() {
@@ -166,6 +186,7 @@ public class RegisterFragment extends Fragment {
                 });
             }
         });
+
 
         return view;
     }
@@ -224,5 +245,61 @@ public class RegisterFragment extends Fragment {
                 etDate.setText(hari + "/" + bulan + "/" + tahun);
             }
         });
+    }
+
+    private boolean validateUsername() {
+
+        String val = etUsername.getText().toString().trim();
+        String checkspaces = "\\A\\w{1,20}\\z";
+
+        if (val.isEmpty()) {
+            etUsername.setError("Field can not  be empty");
+            return false;
+        }
+
+        if (val.length()>20){
+            etUsername.setError("Username is too long!");
+            return false;
+        }
+
+        if (!val.matches(checkspaces)){
+            etUsername.setError("No white spaces are allowed!");
+            return false;
+        }
+
+        return true;
+
+    }
+
+    private boolean validateEmail() {
+
+        String val = etEmail.getText().toString().trim();
+        String checkEmail = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
+
+        if (val.isEmpty()) {
+            etEmail.setError("Field can not  be empty");
+            return false;
+        }
+
+        if (!val.matches(checkEmail)){
+            etEmail.setError("Invalid etEmail!");
+            return false;
+        }
+
+        return true;
+
+    }
+
+    private boolean validatePassword() {
+
+        String val = etPassword.getText().toString().trim();
+
+        if (val.isEmpty()) {
+            etPassword.setError("Field can not  be empity");
+            return false;
+        }
+
+        return true;
+
     }
 }

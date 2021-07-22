@@ -1,4 +1,4 @@
-package com.example.iot;
+package com.example.iot.adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -12,7 +12,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.iot.Model.Kontak;
+import com.example.iot.R;
+import com.example.iot.models.Kontak;
 
 import java.util.List;
 

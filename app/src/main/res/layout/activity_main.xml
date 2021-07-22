@@ -4,13 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
-
-    <ProgressBar
-        android:id="@+id/progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"/>
+    tools:context=".activies.MainActivity">
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:layout_width="wrap_content"
@@ -21,16 +15,6 @@
         android:layout_gravity="right"
         android:layout_margin="5dp"
         android:id="@+id/btnLogout"/>
-
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Refresh"
-        android:textAlignment="center"
-        android:gravity="center_horizontal"
-        android:layout_gravity="left"
-        android:layout_margin="5dp"
-        android:id="@+id/btnRefresh"/>
 
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/viewPager"

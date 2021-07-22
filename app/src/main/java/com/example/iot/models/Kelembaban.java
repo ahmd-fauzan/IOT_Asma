@@ -1,4 +1,4 @@
-package com.example.iot.Model;
+package com.example.iot.models;
 
 public class Kelembaban {
     private int minKadar;
